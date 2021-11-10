@@ -12,6 +12,7 @@ typedef struct {
 	char data[4][4];
 }queueNode;
 
+
 char Sequence[16];
 char gate[3] = { 3, 2, 1 };
 queueNode* address[100000];
