@@ -11,6 +11,24 @@
 // Sensor.h				-> READ_SENSOR()를 S로 변경
 // Sensor.h				-> S에 | (~(PIND<<1)&0x20) | (~PIND&0x40) 추가
 
+#define N 16
+
+char gate[4][2] = {  //각각의 게이트가 지나갈 수 있는 색
+	{3, 3},
+	{3, 2},
+	{2, 1},
+	{1, 1}
+};
+
+char Map[N] = {   // 위에서부터 순서대로
+	0, 0, 2, 2,
+	1, 3, 3, 0,
+	1, 2, 2, 0,
+	1, 3, 0, 3
+};
+
+char dap[N];
+
 
 void LS()
 {
@@ -25,86 +43,175 @@ void LS()
     StopMotion(9);
 }
 
-#define N 16
-#define MAX 580
-
-char Map[N] = {
-	0, 0, 2, 2, 
-	1, 3, 3, 9, 
-	1, 2, 2, 0, 
-	1, 3, 0, 3, 
-};  //로봇 위치는 9로 기록
-
-
-char Sequence[16];
-char gate[4][2] = { 0, 0, 0, 0, 0, 0, 0, 0};
-char temp[4][4];   //로봇 이동에 따른 맵의 변화를 기록
-int rear = 0, front = 0;
-int target = 0;  // arrangement에서 몇번째를 맞춰야 하는지 지정
-char gps[2];
-int parent[MAX];
-char queue[MAX][2];  // 로봇의 X, Y 좌표만 기록
-char stack[60][2]; //경로 역추적을 위한 stack
-
-
-void arrangement() {
-	//맞춰야 하는 순서 저장 배열
-	Sequence[0] = Map[2];
-	Sequence[1] = Map[14];
-	Sequence[2] = Map[1];
-	Sequence[3] = Map[13];
-	Sequence[4] = Map[0];
-	Sequence[5] = Map[12];
-	Sequence[6] = Map[4];
-	Sequence[7] = Map[8];
-	Sequence[8] = Map[5];
-	Sequence[9] = Map[9];
-	Sequence[10] = Map[6];
-	Sequence[11] = Map[10];
-	Sequence[12] = Map[3];
-	Sequence[13] = Map[15];
-	Sequence[14] = Map[7];
-	Sequence[15] = Map[11];
-	for (int i = 0; i < 16; i++) printf("%d ", Sequence[i]);
-	printf("\n");
-}
-
-
-void start() {
-	HM(0, 650, 11, 520, -750, 0);
-	FCC(1, 0, 0, 0);
-	LS();
-}
-
-void Motion() {
-	LS();
-	turn(-1, 200, 11, 90, 0, 0);
-	LS();
-	turn(1, 200, 11, 90, 0, 0);
+void Motion(char i) {
 	LS();
 	ping(1);
 	Line(0, 400, 10, 0, 0, 150, 0, 0);
-	LM(1, 400, 100, 01, 500, 0, 90, 0);
+	LM(1, 400, 100, 01, 500, 0, i * 90, 0);
 	LS();
 }
 
-void M1() {
-	start();
-	//solve();
+char scanGate() {
+	for (int i = 0; i < 4; i++) {
+		if (Map[3 + (4 * i)] == gate[i][0] || Map[3 + (4 * i)] == gate[i][1]) return i;
+	}
+	return 9;
 }
-void M2() {
-	Motion();	
+
+char findBlank() {
+	for(int i = 3;i >= 0; i--) {
+		for(int j = 0;j < 3;j++) {
+			if (Map[i + (4*j)] == 0) return (i + (4*j));
+		}
+	} 
 }
-void M3() {
+
+char findWay() {
+	
+}
+
+void proto() {
+	char bl = findBlank();
+	
+	if (bl <= 7) HM(-90, 300, 11, 250, 0, 0);
+	else if(bl <= 11) HM(-90, 650, 11, 750, 0, 0);
+	else HM(-90, 650, 11, 1350, 0, 0);
+
+	
+}
+
+void startMotion() {
+	int X[4] = {0,40,70,130};//카메라 X값
+	int Y[3] = {0,120, 240};
+	int m[16] = {0};//퍽 값
+	int c[3] = {0};//테이프값
+
+	turn(1,100,11,20,0,0);
+	V1(1,2,0,0,0,180,0,240,0,0,0);
+	for(int i=0;i<2;i++)c[i+1] = C_D[i][0];
+	turn(-1,100,11,20,0,0);
+	HM(0,500,11,500,-700,0);
+	FCC(1,0,0,0);
+	LS();
+	V1(1,2,0,0,0,180,0,240,0,0,0);
+	c[0] = C_D[0][0];
+	for(int i=0;i<3;i++) dc(i,16,c[i]);
+	Line(0, 300, 11, 4, 0x7C, 300, 0, 0);
+	
+	HM(0,400,11,0,250,0);
+	
+	for(int i=0;i<2;i++){
+		C_D[0][0] = 0;
+		V1(1,0,0,0,100,180,Y[i],Y[i+1],0,0,0);
+		m[12+i] = C_D[0][0];
+		dc(3,i*4,m[12+i]);
+	}
+	
+	Hm(0,400,11,500,0,4,0x7C,300,200,0);
+	
+	for(int i=0;i<3;i++){
+		C_D[0][0] = 0;
+		V1(1,3,0,0,X[i]+5,X[i+1],Y[0],Y[1],0,0,0);
+		dc(i,0,C_D[0][0]);
+		m[i*4+0] = C_D[0][0];
+		
+	}
+
+	for(int i=0;i<3;i++){
+		C_D[0][0] = 0;
+		V1(1,0,0,0,X[i],X[i+1],Y[1],Y[2],0,0,0);
+		dc(i,4,C_D[0][0]);
+		m[i*4+1] = C_D[0][0];
+	}
+	HM(0,500,10,-200,0,0);
+	Hm(0,500,01,-300,350,4,0x7C,300,200,100);
+	LS();
+	HM(0,500,11,0,800,0);
+	
+	for(int i=0;i<2;i++){
+		C_D[0][0] = 0;
+		V1(1,0,0,0,100,180,Y[i],Y[i+1],0,0,0);
+		m[14+i] = C_D[0][0];
+		dc(3,(i+2)*4,m[14+i]);
+	}
+	Hm(0,400,11,500,0,4,0x7C,300,200,0);
+	for(int i=0;i<3;i++){
+		C_D[0][0] = 0;
+		V1(1,3,0,0,X[i]+5,X[i+1],Y[0],Y[1],0,0,0);
+		dc(i,8,C_D[0][0]);
+		m[i*4+2] = C_D[0][0];
+		
+	}
+
+	for(int i=0;i<3;i++){
+		C_D[0][0] = 0;
+		V1(1,0,0,0,X[i],X[i+1],Y[1],Y[2],0,0,0);
+		dc(i,12,C_D[0][0]);
+		m[i*4+2] = C_D[0][0];
+	}
+	HM(0,400,10,-200,0,0);
+	HM(0,400,01,-100,250,50);
+	FCC(1,1,0,0);
+	LS();
+}
+
+
+void first() {
+	startMotion();  // 초기 퍽과 테이프 읽기
+
+	dap[0] = Map[3];
+	dap[1] = Map[2];
+	dap[2] = Map[1];
+	dap[3] = Map[0];
+	dap[4] = Map[7];
+	dap[5] = Map[6];
+	dap[6] = Map[5];
+	dap[7] = Map[4];
+	dap[8] = Map[11];
+	dap[9] = Map[10];
+	dap[10] = Map[9];
+	dap[11] = Map[8];
+	dap[12] = Map[15];
+	dap[13] = Map[14];
+	dap[14] = Map[13];
+	dap[15] = Map[12];
+
+	char po = scanGate();
+
+	if (po != 9) {  //통과 가능한 색이 있다면
+		HM(-90, 450, 11, po * 450, 0, 0);
+		LS();
+		Motion(2);
+		Motion(0);
+		//char pt = findWay();
+	}
+	else {   //통과 가능한 색이 없다면
+		proto();
+		
+	}
+}
+
+void M1() { 
+	first();
+}
+
+void M2()
+{
+
+}
+void M3()
+{
+
 	
 }
 void M4()
 {	
-	
+
+
 }
 void M5()
 {
-	
+
 }
 void M6()
 {
@@ -112,7 +219,7 @@ void M6()
 }
 void M7()
 {
-	
+
 }
 void M8()
 {
