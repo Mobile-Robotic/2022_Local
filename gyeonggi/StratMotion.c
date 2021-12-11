@@ -11,6 +11,63 @@
 // Sensor.h				-> READ_SENSOR()를 S로 변경
 // Sensor.h				-> S에 | (~(PIND<<1)&0x20) | (~PIND&0x40) 추가
 
+#define N 16
+
+char gate[4][2] = {  //각각의 게이트가 지나갈 수 있는 색
+	{3, 3},
+	{3, 2},
+	{2, 1},
+	{1, 1}
+};
+
+char Map[N] = {   // 위에서부터 순서대로
+	0, 0, 2, 2,
+	1, 3, 3, 0,
+	1, 2, 2, 0,
+	1, 3, 0, 3
+};
+
+char dap[N];
+
+char scanGate() {
+	for (int i = 0; i < 4; i++) {
+		if (Map[3 + (4 * i)] == gate[i][0] || Map[3 + (4 * i)] == gate[i][1]) return i;
+	}
+	return 9;
+}
+
+void start() {
+	char po = scanGate();
+
+	if (po == 9) {
+		
+	}
+	else {
+		
+	}
+}
+
+void first() {
+	dap[0] = Map[3];
+	dap[1] = Map[2];
+	dap[2] = Map[1];
+	dap[3] = Map[0];
+	dap[4] = Map[7];
+	dap[5] = Map[6];
+	dap[6] = Map[5];
+	dap[7] = Map[4];
+	dap[8] = Map[11];
+	dap[9] = Map[10];
+	dap[10] = Map[9];
+	dap[11] = Map[8];
+	dap[12] = Map[15];
+	dap[13] = Map[14];
+	dap[14] = Map[13];
+	dap[15] = Map[12];
+
+	char po = scanGate();
+}
+
 void LS()
 {
     if (S&8) return;
@@ -23,11 +80,14 @@ void LS()
     }
     StopMotion(9);
 }
-int m[16] = {0};//퍽 값
-int c[3] = {0};//테이프값
-int X[4] = {0,40,70,130};//카메라 X값
-int Y[3] = {0,120, 240};
-void M1() {
+
+
+void startMotion() {
+	int X[4] = {0,40,70,130};//카메라 X값
+	int Y[3] = {0,120, 240};
+	int m[16] = {0};//퍽 값
+	int c[3] = {0};//테이프값
+
 	turn(1,100,11,20,0,0);
 	V1(1,2,0,0,0,180,0,240,0,0,0);
 	for(int i=0;i<2;i++)c[i+1] = C_D[i][0];
@@ -37,7 +97,7 @@ void M1() {
 	LS();
 	V1(1,2,0,0,0,180,0,240,0,0,0);
 	c[0] = C_D[0][0];
-	for(int i=0;i<3;i++)dc(i,16,c[i]);
+	for(int i=0;i<3;i++) dc(i,16,c[i]);
 	Line(0, 300, 11, 4, 0x7C, 300, 0, 0);
 	
 	HM(0,400,11,0,250,0);
@@ -95,6 +155,13 @@ void M1() {
 	HM(0,400,01,-100,250,50);
 	FCC(1,1,0,0);
 	LS();
+
+
+}
+
+void M1() {
+	startMotion();
+	first();
 }
 
 void M2()
