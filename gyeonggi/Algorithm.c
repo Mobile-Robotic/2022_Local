@@ -3,81 +3,71 @@
 #include<time.h>
 
 char Map[32] = {0,};
-char preMap[16];
+char Completion[16];
 char queue[520];
 
 void preprocess() {
-	int redCount = 0;
-	int blueCount = 0;
-	int yellowCount = 0;
-
-	int first = 0;
-	int second = 0;
-	int third = 0;
-	int four = 0;
-
+	char location;
 	srand(time(NULL));
-	for (int i = 0; i < 11; i++) {
-		while (1) {
-			int location = rand() % 16;
-			int color = rand() % 3;
-
-			// 개수 제한 확인
-			if (preMap[location] != 0) continue;
-			else {
-				if ((location < 4 && first == 2) || ((4<=location && location < 8) && second == 3) || ((8 <= location && location < 12) && third == 3) || ((12 <= location && location < 16) && four == 3)) continue;
-				else {
-					//색 개수 체크
-					if ((color == 0 && redCount < 4) || (color == 1 && blueCount < 4) || (color == 2 && yellowCount < 4)) {
-						if (location < 4) first++;
-						else if (location < 8) second++;
-						else if (location < 12) third++;
-						else four++;
-						
-						if (color == 0) redCount++;
-						if (color == 1) blueCount++;
-						if (color == 2) yellowCount++;
-						preMap[location] = color;
-
-						for (int i = 0; i < 4; i++) {
-							for (int j = 0; j < 4; j++) {
-								printf("%d ", preMap[i * 4 + j]);
-							}
-							printf("\n");
-						}
-						printf("\n\n");
-
-						break;
-					}
+	
+	for (int k = 0; k < 3; k++) {
+		for (int i = 0; i < 3; i++) {
+			while (1) {
+				location = rand() % 4;
+				if (Map[location + 4 + (k * 8)] == 0) {
+					Map[location + 4 + (k * 8)] = (rand() % 3) + 1;
+					break;
 				}
 			}
 		}
 	}
-	Map[0] = preMap[0];
-	Map[1] = preMap[1];
-	Map[2] = preMap[2];
-	Map[3] = preMap[3];
-	Map[8] = preMap[4];
-	Map[9] = preMap[5];
-	Map[10] = preMap[6];
-	Map[11] = preMap[7];
-	Map[16] = preMap[8];
-	Map[17] = preMap[9];
-	Map[18] = preMap[10];
-	Map[19] = preMap[11];
-	Map[24] = preMap[12];
-	Map[25] = preMap[13];
-	Map[26] = preMap[14];
-	Map[27] = preMap[15];
+	for (int i = 0; i < 2; i++) {
+		while (1) {
+			location = rand() % 4;
+			if (Map[location + 28] == 0) {
+				Map[location + 28] = (rand() % 3) + 1;
+				break;
+			}
+		}
+	}
+
+	Completion[0] = Map[7];
+	Completion[1] = Map[6];
+	Completion[2] = Map[5];
+	Completion[3] = Map[4];
+	Completion[4] = Map[15];
+	Completion[5] = Map[14];
+	Completion[6] = Map[13];
+	Completion[7] = Map[12];
+	Completion[8] = Map[23];
+	Completion[9] = Map[22];
+	Completion[10] = Map[21];
+	Completion[11] = Map[20];
+	Completion[12] = Map[31];
+	Completion[13] = Map[30];
+	Completion[14] = Map[29];
+	Completion[15] = Map[28];
+
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 8; j++) {
+			printf("%d ", Map[j + (i * 8)]);
+		}
+		printf("\n");
+	}
+	printf("=========================================\n");
+	
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			printf("%d ", Completion[j + (4 * i)]);
+		}
+		printf("\n");
+	}
 }
 
 int main(void) {
 	preprocess();
-	//for (int i = 0; i < 4; i++) {
-	//	for (int j = 0; j < 8; j++) {
-	//		printf("%d ", Map[i * 8 + j]);
-	//	}
-	//	printf("\n");
-	//}
+	
+
+
 	return 0;
 }
